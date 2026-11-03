@@ -1,0 +1,62 @@
+:root {
+  --color-text: #1a1a1a;
+  --color-background: #ffffff;
+  --color-accent: #0b5394;
+  --color-on-accent: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+button {
+  /* Цель касания не меньше 44×44 px */
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* Не видно на экране, но доступно скринридеру (display: none скрыл бы и от него) */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
