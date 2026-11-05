@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Проверка обратной связи</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="src/styles.css">
+  <script type="module" src="src/feedback-test.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Проверка обратной связи</h1>
+    <p>Служебная страница исследователя. Участникам её не показывать.</p>
+
+    <button id="init-audio" type="button">Включить звук</button>
+    <p id="audio-state">Звук не включён</p>
+    <p id="vibration-state"></p>
+
+    <h2>C0: только визуально</h2>
+    <div class="button-row">
+      <button type="button" data-condition="C0" data-outcome="success">C0 успех</button>
+      <button type="button" data-condition="C0" data-outcome="failure">C0 неудача</button>
+    </div>
+
+    <h2>C1: речь</h2>
+    <div class="button-row">
+      <button type="button" data-condition="C1" data-outcome="success">C1 успех</button>
+      <button type="button" data-condition="C1" data-outcome="failure">C1 неудача</button>
+    </div>
+
+    <h2>C2: только earcon</h2>
+    <div class="button-row">
+      <button type="button" data-condition="C2" data-outcome="success">C2 успех</button>
+      <button type="button" data-condition="C2" data-outcome="failure">C2 неудача</button>
+    </div>
+
+    <h2>C3: earcon и речь</h2>
+    <div class="button-row">
+      <button type="button" data-condition="C3" data-outcome="success">C3 успех</button>
+      <button type="button" data-condition="C3" data-outcome="failure">C3 неудача</button>
+    </div>
+
+    <h2>C4: вибрация</h2>
+    <div class="button-row">
+      <button type="button" data-condition="C4" data-outcome="success">C4 успех</button>
+      <button type="button" data-condition="C4" data-outcome="failure">C4 неудача</button>
+    </div>
+
+    <h2>Последний вызов</h2>
+    <!-- Обычный текст без live-региона: скринридер не должен объявлять его сам -->
+    <p id="last-call">Пока ничего</p>
+
+    <div id="status" class="visually-hidden" role="status"></div>
+  </main>
+</body>
+</html>
