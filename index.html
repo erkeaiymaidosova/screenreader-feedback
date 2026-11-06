@@ -10,12 +10,10 @@
   <script type="module" src="src/main.js"></script>
 </head>
 <body>
-  <main>
-    <h1>Рецепт: Плов</h1>
-    <button id="save-button" type="button">Сохранить</button>
+  <!-- Экраны сессии сменяются здесь без перезагрузки страницы -->
+  <main id="screen"></main>
 
-    <!-- Область есть в странице с момента загрузки и пуста: скринридер должен заранее знать о ней -->
-    <div id="status" class="visually-hidden" role="status"></div>
-  </main>
+  <!-- Область вне экранов: она существует с момента загрузки и не пересоздаётся при смене задания -->
+  <div id="status" class="visually-hidden" role="status"></div>
 </body>
 </html>

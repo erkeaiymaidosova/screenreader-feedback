@@ -2,6 +2,8 @@
 const CLEAR_DELAY_MS = 100;
 // Пауза между концом earcon и началом речи в C3
 const EARCON_GAP_MS = 150;
+// Сколько текст хранится в области: потом его нельзя найти свайпом, как и в C0 и C2
+const MESSAGE_LIFETIME_MS = 5000;
 const VOLUME = 0.4;
 
 // Длительность earcon в секундах: каждая меньше 0,5 с
@@ -16,6 +18,7 @@ export function isVibrationSupported() {
 export function createFeedback(statusElement) {
   let audioContext = null;
   let pendingWrite = null;
+  let pendingClear = null;
 
   // Браузер разрешает звук только после жеста: вызывать из обработчика нажатия
   function initAudio() {
@@ -69,12 +72,16 @@ export function createFeedback(statusElement) {
   function announce(message, extraDelayMs = 0) {
     pendingWrite = setTimeout(() => {
       statusElement.textContent = message;
+      pendingClear = setTimeout(() => {
+        statusElement.textContent = '';
+      }, MESSAGE_LIFETIME_MS);
     }, CLEAR_DELAY_MS + extraDelayMs);
   }
 
-  // Снять запланированную запись и очистить область
+  // Снять запланированные запись и очистку, очистить область
   function reset() {
     clearTimeout(pendingWrite);
+    clearTimeout(pendingClear);
     statusElement.textContent = '';
   }
 
