@@ -1,9 +1,11 @@
+import { MERGED_COLUMNS, mergeResults } from './analysis.js';
 import { el } from './dom.js';
 import { downloadText } from './export.js';
 import { EVENT_COLUMNS, SUMMARY_COLUMNS, summarize, toCsv } from './logger.js';
 import { researcherUi as ui, taskTitles } from './messages.js';
 import { ORDERS, getOrderIdForParticipant, normalizeParticipantId } from './order.js';
 import { buildBlocks } from './tasks.js';
+import { APP_VERSION } from './version.js';
 
 const STORAGE_KEY = 'srf-researcher';
 const app = document.getElementById('app');
@@ -151,6 +153,7 @@ function showStart() {
   app.replaceChildren(
     el('h1', {}, ui.title),
     el('p', {}, ui.intro),
+    el('p', {}, ui.version(APP_VERSION)),
     ...(storageAvailable ? [] : [el('p', { class: 'field-message' }, ui.storageUnavailable)]),
     form,
     ...(saved.length ? [el('p', {}, ui.savedParticipants(saved.join(', ')))] : []),
@@ -322,7 +325,14 @@ function importSection() {
           downloadText(`srf-phone-${fileStamp()}-summary.csv`, bom(toCsv(summarize(events), SUMMARY_COLUMNS)), 'text/csv');
         }
       }),
+      button(ui.importMerged, () => {
+        const events = readEvents();
+        if (events) {
+          downloadText(`srf-merged-${fileStamp()}.csv`, bom(toCsv(mergeResults(events, records), MERGED_COLUMNS)), 'text/csv');
+        }
+      }),
     ),
+    el('p', {}, ui.importMergedHelp),
     note,
   );
 }

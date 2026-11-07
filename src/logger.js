@@ -1,15 +1,17 @@
+import { APP_VERSION } from './version.js';
+
 const STORAGE_KEY = 'srf-sessions';
 
 // Порядок столбцов в CSV событий
 export const EVENT_COLUMNS = [
-  'seq', 'sessionId', 'participantId', 'orderId', 'pageLoad', 'eventType',
+  'seq', 'sessionId', 'participantId', 'orderId', 'appVersion', 'pageLoad', 'eventType',
   'practice', 'exploratory', 'block', 'condition', 'taskRun', 'taskId', 'action',
   'plannedOutcome', 'actualOutcome', 'element', 'audioState', 'perfMs', 'isoTime',
 ];
 
 // Порядок столбцов в CSV итогов по заданиям
 export const SUMMARY_COLUMNS = [
-  'sessionId', 'participantId', 'orderId', 'practice', 'exploratory', 'block', 'condition',
+  'sessionId', 'participantId', 'orderId', 'appVersion', 'practice', 'exploratory', 'block', 'condition',
   'taskRun', 'taskId', 'action', 'plannedOutcome', 'finalOutcome',
   'targetPresses', 'repeatPresses', 'otherPresses', 'firstPressToNextMs', 'completed',
 ];
@@ -48,6 +50,7 @@ export function createLogger() {
       orderId,
       includeVibration,
       startedAt: new Date().toISOString(),
+      appVersion: APP_VERSION,
       finished: false,
       abandoned: false,
       progress: null,
@@ -72,6 +75,7 @@ export function createLogger() {
       sessionId: session.sessionId,
       participantId: session.participantId,
       orderId: session.orderId,
+      appVersion: APP_VERSION,
       pageLoad: session.pageLoad,
       eventType,
       practice: false,

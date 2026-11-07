@@ -6,6 +6,11 @@ import { taskTitles, ui } from './messages.js';
 import { ORDERS, getOrderIdForParticipant, normalizeParticipantId } from './order.js';
 import { renderTask } from './task-view.js';
 import { PRACTICE_CONDITION, PRACTICE_TASK, buildBlocks } from './tasks.js';
+import { APP_VERSION } from './version.js';
+
+// Пауза перед звуком на экране знакомства: VoiceOver успевает прочитать название кнопки.
+// Касается только знакомства, в заданиях звук звучит сразу
+const PREVIEW_DELAY_MS = 2000;
 
 const screen = document.getElementById('screen');
 const feedback = createFeedback(document.getElementById('status'));
@@ -155,7 +160,7 @@ function showSetup() {
     showIntro(buildBlocks(orderId, session.includeVibration));
   });
 
-  const parts = [el('h1', {}, ui.setupTitle)];
+  const parts = [el('h1', {}, ui.setupTitle), el('p', {}, ui.version(APP_VERSION))];
   if (!logger.isStorageAvailable()) parts.push(el('p', { class: 'field-message' }, ui.storageUnavailable));
 
   // Незавершённая сессия: например, страницу случайно перезагрузили
@@ -212,7 +217,7 @@ function showIntro(blocks) {
   function preview(outcome, label) {
     return textButton(label, () => {
       recordEvent('earcon_preview', { element: label, audioState: feedback.getAudioState() });
-      feedback.playEarcon(outcome);
+      setTimeout(() => feedback.playEarcon(outcome), PREVIEW_DELAY_MS);
     });
   }
 

@@ -24,6 +24,7 @@ export const taskTitles = {
 // Подписи экранов и кнопок
 export const ui = {
   setupTitle: 'Настройка сессии',
+  version: (version) => `Версия кода: ${version}`,
   participantId: 'ID участника (P1–P10)',
   participantIdError: 'Введите код от P1 до P10. Имена не вводите.',
   orderLabel: 'Порядок условий',
@@ -88,6 +89,7 @@ export const ui = {
 export const researcherUi = {
   title: 'Страница исследователя',
   intro: 'Ответы участника сохраняются только в этом браузере. Не вводите имена.',
+  version: (version) => `Версия кода: ${version}`,
   participantId: 'ID участника (P1–P10)',
   participantIdError: 'Введите код от P1 до P10. Имена не вводите.',
   orderLabel: 'Порядок условий (как на телефоне)',
@@ -130,6 +132,8 @@ export const researcherUi = {
   importLabel: 'JSON журнала',
   importEvents: 'Скачать CSV событий',
   importSummary: 'Скачать CSV итогов',
+  importMerged: 'Скачать объединённую таблицу',
+  importMergedHelp: 'Объединённая таблица: одна строка на задание. В ней фактический исход с телефона и ответы участника с этой страницы.',
   importError: 'Не удалось прочитать JSON. Проверьте, что текст скопирован полностью.',
   importDone: (count) => `Прочитано сессий: ${count}.`,
 };
