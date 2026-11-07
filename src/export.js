@@ -23,7 +23,8 @@ export async function copyText(text) {
 
   // Запасной способ для адреса http://: скрытое поле и старая команда копирования
   const previousFocus = document.activeElement;
-  const area = el('textarea', { readonly: '', class: 'visually-hidden', 'aria-hidden': 'true' });
+  // На iOS выделение работает только в редактируемом поле, поэтому без readonly
+  const area = el('textarea', { class: 'visually-hidden', 'aria-hidden': 'true', contenteditable: 'true' });
   area.value = text;
   document.body.append(area);
   area.select();

@@ -53,7 +53,8 @@ export function renderTask({ task, title, condition, feedback, onEvent, onNext }
     visualState.dataset.outcome = result.outcome;
     // Подсветка только визуальная: aria-invalid объявил бы ошибку и в C0
     if (nameInput) nameInput.classList.toggle('field-error', result.outcome === 'failure');
-    onEvent('target_press', { actualOutcome: result.outcome });
+    // Состояние звука до вызова обратной связи: видно, мог ли earcon вообще прозвучать
+    onEvent('target_press', { actualOutcome: result.outcome, audioState: feedback.getAudioState() });
     feedback.give({ condition, outcome: result.outcome, message: result.message });
   }
 

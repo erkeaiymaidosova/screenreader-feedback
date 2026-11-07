@@ -75,7 +75,61 @@ export const ui = {
   downloadSummaryCsv: 'Скачать CSV итогов',
   copyJson: 'Скопировать JSON',
   copied: 'JSON скопирован в буфер обмена.',
-  copyFailed: 'Скопировать не удалось. Скачайте файл.',
+  copyFailed: 'Скопировать не удалось. Нажмите «Показать данные» и скопируйте текст вручную.',
+  downloadStarted: (name) =>
+    `Файл «${name}» отправлен на скачивание. На iPhone ищите его в приложении «Файлы», папка «Загрузки». Если файла нет, нажмите «Показать данные».`,
+  showData: 'Показать данные',
+  dataLabel: 'Данные журнала (JSON). Выделите весь текст и скопируйте',
   deleteData: 'Удалить сохранённые данные',
   confirmDelete: 'Удалить все сохранённые сессии из этого браузера? Сначала сделайте экспорт.',
+};
+
+// Тексты страницы исследователя
+export const researcherUi = {
+  title: 'Страница исследователя',
+  intro: 'Ответы участника сохраняются только в этом браузере. Не вводите имена.',
+  participantId: 'ID участника (P1–P10)',
+  participantIdError: 'Введите код от P1 до P10. Имена не вводите.',
+  orderLabel: 'Порядок условий (как на телефоне)',
+  orderAuto: 'Автоматически по ID',
+  includeVibration: 'Был поисковый блок с вибрацией',
+  open: 'Открыть лист ответов',
+  back: '← К списку участников',
+  savedParticipants: (ids) => `Сохранённые участники: ${ids}`,
+  orderInfo: (orderId, conditions) => `Порядок ${orderId}: ${conditions}`,
+
+  blockHeading: (number, condition, exploratory) =>
+    `Блок ${number} — ${condition}${exploratory ? ' (поисковый)' : ''}`,
+  taskHeading: (number, title) => `Задание ${number}. ${title}`,
+  planned: (outcome) => `Запланировано: ${outcome === 'success' ? 'успех' : 'неудача'}`,
+  whatHappened: 'Что произошло?',
+  answerSuccess: 'Удалось',
+  answerFailure: 'Не удалось',
+  answerUnsure: 'Не уверен(а)',
+  confidence: 'Уверенность (1–5)',
+  afterBlock: 'После блока',
+  clarity: 'Понятность (1–5)',
+  intrusiveness: 'Навязчивость (1–5)',
+
+  finalHeading: 'В конце сессии',
+  rankingLegend: 'Ранжирование: место каждого блока (1 — лучший)',
+  rankingLabel: (number, condition) => `Блок ${number} (${condition})`,
+  rankingDuplicate: 'Одно и то же место выбрано несколько раз.',
+  notes: 'Заметки',
+
+  saved: (time) => `Сохранено в ${time}`,
+  storageUnavailable: 'Хранилище браузера недоступно: ответы пропадут при перезагрузке. Скачайте CSV до закрытия.',
+
+  exportHeading: 'Экспорт ответов',
+  downloadAnswers: 'Скачать CSV ответов (все участники)',
+  deleteAnswers: 'Удалить все ответы',
+  confirmDelete: 'Удалить ответы всех участников из этого браузера? Сначала скачайте CSV.',
+
+  importHeading: 'Журнал с телефона',
+  importHelp: 'Вставьте JSON, скопированный на телефоне кнопкой «Показать данные», и скачайте CSV на этом компьютере.',
+  importLabel: 'JSON журнала',
+  importEvents: 'Скачать CSV событий',
+  importSummary: 'Скачать CSV итогов',
+  importError: 'Не удалось прочитать JSON. Проверьте, что текст скопирован полностью.',
+  importDone: (count) => `Прочитано сессий: ${count}.`,
 };

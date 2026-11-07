@@ -55,6 +55,16 @@ function exportPanel(getSessions, fileName) {
   // Знак BOM в начале нужен, чтобы Excel правильно показал русские буквы
   const bom = '﻿';
 
+  // Браузер не сообщает, сохранился ли файл, поэтому показываем, где его искать
+  function download(name, text, type) {
+    downloadText(name, text, type);
+    note.textContent = ui.downloadStarted(name);
+  }
+
+  // Запасной путь, который работает везде: текст на экране, его можно выделить и скопировать вручную
+  const dataArea = el('textarea', { id: 'export-data', readonly: '', rows: '8' });
+  const dataBlock = el('div', { hidden: '' }, el('label', { for: 'export-data' }, ui.dataLabel), dataArea);
+
   return el(
     'section',
     { class: 'export-panel' },
@@ -62,18 +72,25 @@ function exportPanel(getSessions, fileName) {
     el(
       'div',
       { class: 'button-stack' },
-      textButton(ui.downloadJson, () => downloadText(`${fileName()}.json`, json(), 'application/json')),
+      textButton(ui.downloadJson, () => download(`${fileName()}.json`, json(), 'application/json')),
       textButton(ui.downloadEventsCsv, () =>
-        downloadText(`${fileName()}-events.csv`, bom + toCsv(events(), EVENT_COLUMNS), 'text/csv'),
+        download(`${fileName()}-events.csv`, bom + toCsv(events(), EVENT_COLUMNS), 'text/csv'),
       ),
       textButton(ui.downloadSummaryCsv, () =>
-        downloadText(`${fileName()}-summary.csv`, bom + toCsv(summarize(events()), SUMMARY_COLUMNS), 'text/csv'),
+        download(`${fileName()}-summary.csv`, bom + toCsv(summarize(events()), SUMMARY_COLUMNS), 'text/csv'),
       ),
       textButton(ui.copyJson, async () => {
         note.textContent = (await copyText(json())) ? ui.copied : ui.copyFailed;
       }),
+      textButton(ui.showData, () => {
+        dataArea.value = json();
+        dataBlock.hidden = false;
+        dataArea.focus();
+        dataArea.select();
+      }),
     ),
     note,
+    dataBlock,
   );
 }
 
@@ -194,8 +211,8 @@ function showIntro(blocks) {
 
   function preview(outcome, label) {
     return textButton(label, () => {
+      recordEvent('earcon_preview', { element: label, audioState: feedback.getAudioState() });
       feedback.playEarcon(outcome);
-      recordEvent('earcon_preview', { element: label });
     });
   }
 

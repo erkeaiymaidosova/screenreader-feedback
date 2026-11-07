@@ -30,6 +30,11 @@ export function createFeedback(statusElement) {
     return true;
   }
 
+  // Состояние звука для журнала: running — работает, suspended или interrupted — приостановлен системой
+  function getAudioState() {
+    return audioContext ? audioContext.state : 'none';
+  }
+
   function playTone(type, startHz, endHz, startAt, duration, peak = VOLUME) {
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
@@ -113,5 +118,5 @@ export function createFeedback(statusElement) {
     }
   }
 
-  return { initAudio, playEarcon, give, reset };
+  return { initAudio, getAudioState, playEarcon, give, reset };
 }

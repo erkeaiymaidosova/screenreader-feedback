@@ -4,7 +4,7 @@ const STORAGE_KEY = 'srf-sessions';
 export const EVENT_COLUMNS = [
   'seq', 'sessionId', 'participantId', 'orderId', 'pageLoad', 'eventType',
   'practice', 'exploratory', 'block', 'condition', 'taskRun', 'taskId', 'action',
-  'plannedOutcome', 'actualOutcome', 'element', 'perfMs', 'isoTime',
+  'plannedOutcome', 'actualOutcome', 'element', 'audioState', 'perfMs', 'isoTime',
 ];
 
 // Порядок столбцов в CSV итогов по заданиям
@@ -84,6 +84,7 @@ export function createLogger() {
       plannedOutcome: null,
       actualOutcome: null,
       element: null,
+      audioState: null,
       ...details,
       perfMs: Math.round(performance.now() * 10) / 10,
       isoTime: new Date().toISOString(),
