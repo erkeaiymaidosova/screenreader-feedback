@@ -60,4 +60,22 @@ export const ui = {
 
   finishTitle: 'Спасибо за участие!',
   finishText: 'Сессия завершена.',
+
+  storageUnavailable: 'Хранилище браузера недоступно: журнал пропадёт при перезагрузке. Сделайте экспорт до закрытия страницы.',
+  resumeSession: (participantId) => `Продолжить сессию ${participantId}`,
+  stoppedAt: (place) => `Сессия остановилась: ${place}.`,
+  progressIntro: 'знакомство со звуками',
+  progressTask: (block, task) => `блок ${block}, задание ${task}`,
+  progressPause: (block) => `пауза после блока ${block}`,
+
+  exportTitle: 'Экспорт журнала',
+  savedSessions: (count) => `Сохранённых сессий в этом браузере: ${count}`,
+  downloadJson: 'Скачать JSON',
+  downloadEventsCsv: 'Скачать CSV событий',
+  downloadSummaryCsv: 'Скачать CSV итогов',
+  copyJson: 'Скопировать JSON',
+  copied: 'JSON скопирован в буфер обмена.',
+  copyFailed: 'Скопировать не удалось. Скачайте файл.',
+  deleteData: 'Удалить сохранённые данные',
+  confirmDelete: 'Удалить все сохранённые сессии из этого браузера? Сначала сделайте экспорт.',
 };

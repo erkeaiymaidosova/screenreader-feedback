@@ -1,5 +1,7 @@
 import { el } from './dom.js';
+import { copyText, downloadText } from './export.js';
 import { createFeedback, isVibrationSupported } from './feedback.js';
+import { EVENT_COLUMNS, SUMMARY_COLUMNS, createLogger, summarize, toCsv } from './logger.js';
 import { taskTitles, ui } from './messages.js';
 import { ORDERS, getOrderIdForParticipant, normalizeParticipantId } from './order.js';
 import { renderTask } from './task-view.js';
@@ -7,9 +9,15 @@ import { PRACTICE_CONDITION, PRACTICE_TASK, buildBlocks } from './tasks.js';
 
 const screen = document.getElementById('screen');
 const feedback = createFeedback(document.getElementById('status'));
+const logger = createLogger();
 
-// Запись событий появится на Этапе 4
-function recordEvent() {}
+let session = null;
+// Где сейчас участник: эти поля добавляются к каждому событию
+let context = {};
+
+function recordEvent(eventType, details = {}) {
+  if (session) logger.log(session, eventType, { ...context, ...details });
+}
 
 // Смена экрана. Фокус переносится только здесь, на заголовок нового экрана:
 // после нажатия на обычные кнопки заданий он остаётся на месте
@@ -25,6 +33,54 @@ function textButton(label, onClick) {
   const button = el('button', { type: 'button' }, label);
   button.addEventListener('click', onClick);
   return button;
+}
+
+function fileStamp() {
+  return new Date().toISOString().slice(0, 19).replaceAll(':', '-');
+}
+
+// Кнопки экспорта. getSessions решает, какие сессии выгружать
+function exportPanel(getSessions, fileName) {
+  const note = el('p', { class: 'export-note' });
+
+  function events() {
+    return getSessions().flatMap((saved) => saved.events);
+  }
+
+  function json() {
+    const sessions = getSessions().map((saved) => ({ ...saved, summary: summarize(saved.events) }));
+    return JSON.stringify({ exportedAt: new Date().toISOString(), sessions }, null, 2);
+  }
+
+  // Знак BOM в начале нужен, чтобы Excel правильно показал русские буквы
+  const bom = '﻿';
+
+  return el(
+    'section',
+    { class: 'export-panel' },
+    el('h2', {}, ui.exportTitle),
+    el(
+      'div',
+      { class: 'button-stack' },
+      textButton(ui.downloadJson, () => downloadText(`${fileName()}.json`, json(), 'application/json')),
+      textButton(ui.downloadEventsCsv, () =>
+        downloadText(`${fileName()}-events.csv`, bom + toCsv(events(), EVENT_COLUMNS), 'text/csv'),
+      ),
+      textButton(ui.downloadSummaryCsv, () =>
+        downloadText(`${fileName()}-summary.csv`, bom + toCsv(summarize(events()), SUMMARY_COLUMNS), 'text/csv'),
+      ),
+      textButton(ui.copyJson, async () => {
+        note.textContent = (await copyText(json())) ? ui.copied : ui.copyFailed;
+      }),
+    ),
+    note,
+  );
+}
+
+function describeProgress(progress) {
+  if (progress?.screen === 'task') return ui.progressTask(progress.blockIndex + 1, progress.taskIndex + 1);
+  if (progress?.screen === 'pause') return ui.progressPause(progress.blockIndex + 1);
+  return ui.progressIntro;
 }
 
 function showSetup() {
@@ -76,41 +132,121 @@ function showSetup() {
     }
 
     const orderId = orderSelect.value === 'auto' ? getOrderIdForParticipant(participantId) : orderSelect.value;
-    showIntro(buildBlocks(orderId, vibrationInput.checked));
+    session = logger.start({ participantId, orderId, includeVibration: vibrationInput.checked });
+    context = {};
+    recordEvent('session_start');
+    showIntro(buildBlocks(orderId, session.includeVibration));
   });
 
-  show(el('div', {}, el('h1', {}, ui.setupTitle), form));
+  const parts = [el('h1', {}, ui.setupTitle)];
+  if (!logger.isStorageAvailable()) parts.push(el('p', { class: 'field-message' }, ui.storageUnavailable));
+
+  // Незавершённая сессия: например, страницу случайно перезагрузили
+  const unfinished = logger.findUnfinished();
+  if (unfinished) {
+    parts.push(
+      el('p', {}, ui.stoppedAt(describeProgress(unfinished.progress))),
+      textButton(ui.resumeSession(unfinished.participantId), () => {
+        if (!feedback.initAudio()) {
+          audioError.textContent = ui.audioUnsupported;
+          return;
+        }
+        resumeSession(unfinished);
+      }),
+    );
+  }
+
+  parts.push(form);
+
+  const sessions = logger.getSessions();
+  if (sessions.length > 0) {
+    parts.push(
+      el('p', {}, ui.savedSessions(sessions.length)),
+      exportPanel(logger.getSessions, () => `srf-all-${fileStamp()}`),
+      textButton(ui.deleteData, () => {
+        if (window.confirm(ui.confirmDelete)) {
+          logger.clearAll();
+          showSetup();
+        }
+      }),
+    );
+  }
+
+  show(el('div', {}, ...parts));
+}
+
+function resumeSession(saved) {
+  session = saved;
+  logger.resume(session);
+  context = {};
+  recordEvent('session_resumed');
+
+  const blocks = buildBlocks(session.orderId, session.includeVibration);
+  const progress = session.progress;
+  if (progress?.screen === 'task') showTask(blocks, progress.blockIndex, progress.taskIndex);
+  else if (progress?.screen === 'pause') showBlockDone(blocks, progress.blockIndex);
+  else showIntro(blocks);
 }
 
 function showIntro(blocks) {
+  logger.setProgress(session, { screen: 'intro' });
+  context = { practice: true };
+
+  function preview(outcome, label) {
+    return textButton(label, () => {
+      feedback.playEarcon(outcome);
+      recordEvent('earcon_preview', { element: label });
+    });
+  }
+
   show(
     el(
       'div',
       {},
       el('h1', {}, ui.introTitle),
       el('p', {}, ui.introText),
-      el(
-        'div',
-        { class: 'button-row' },
-        textButton(ui.playSuccess, () => feedback.playEarcon('success')),
-        textButton(ui.playFailure, () => feedback.playEarcon('failure')),
-      ),
+      el('div', { class: 'button-row' }, preview('success', ui.playSuccess), preview('failure', ui.playFailure)),
       textButton(ui.toPractice, () => showPractice(blocks)),
     ),
   );
 }
 
-function showPractice(blocks) {
+// Общий запуск задания: контекст для журнала, экран, событие показа
+function startTask({ task, title, condition, blockContext, onDone }) {
+  context = {
+    ...blockContext,
+    condition,
+    taskRun: logger.nextTaskRun(session),
+    taskId: task.id,
+    action: task.action,
+    plannedOutcome: task.plannedOutcome,
+  };
+
   show(
     renderTask({
-      task: PRACTICE_TASK,
-      title: ui.practiceTitle(taskTitles[PRACTICE_TASK.action](PRACTICE_TASK.subject)),
-      condition: PRACTICE_CONDITION,
+      task,
+      title,
+      condition,
       feedback,
       onEvent: recordEvent,
-      onNext: () => showTask(blocks, 0, 0),
+      onNext: () => {
+        recordEvent('next_task');
+        onDone();
+      },
     }),
   );
+  recordEvent('task_shown');
+}
+
+function showPractice(blocks) {
+  logger.setProgress(session, { screen: 'practice' });
+  startTask({
+    task: PRACTICE_TASK,
+    title: ui.practiceTitle(taskTitles[PRACTICE_TASK.action](PRACTICE_TASK.subject)),
+    condition: PRACTICE_CONDITION,
+    blockContext: { practice: true, exploratory: false, block: null },
+    onDone: () => showTask(blocks, 0, 0),
+  });
 }
 
 function showTask(blocks, blockIndex, taskIndex) {
@@ -118,20 +254,20 @@ function showTask(blocks, blockIndex, taskIndex) {
   const task = block.tasks[taskIndex];
   const isLastTask = taskIndex === block.tasks.length - 1;
 
-  show(
-    renderTask({
-      task,
-      title: ui.taskTitle(taskIndex + 1, block.tasks.length, taskTitles[task.action](task.subject)),
-      condition: block.condition,
-      feedback,
-      onEvent: recordEvent,
-      onNext: () => (isLastTask ? showBlockDone(blocks, blockIndex) : showTask(blocks, blockIndex, taskIndex + 1)),
-    }),
-  );
+  logger.setProgress(session, { screen: 'task', blockIndex, taskIndex });
+  startTask({
+    task,
+    title: ui.taskTitle(taskIndex + 1, block.tasks.length, taskTitles[task.action](task.subject)),
+    condition: block.condition,
+    blockContext: { practice: false, exploratory: block.exploratory, block: block.number },
+    onDone: () => (isLastTask ? showBlockDone(blocks, blockIndex) : showTask(blocks, blockIndex, taskIndex + 1)),
+  });
 }
 
 function showBlockDone(blocks, blockIndex) {
   const isLastBlock = blockIndex === blocks.length - 1;
+  logger.setProgress(session, { screen: 'pause', blockIndex });
+  context = {};
 
   show(
     el(
@@ -145,7 +281,21 @@ function showBlockDone(blocks, blockIndex) {
 }
 
 function showFinish() {
-  show(el('div', {}, el('h1', {}, ui.finishTitle), el('p', {}, ui.finishText)));
+  context = {};
+  recordEvent('session_end');
+  logger.setProgress(session, { screen: 'finish' });
+  logger.finish(session);
+
+  const finished = session;
+  show(
+    el(
+      'div',
+      {},
+      el('h1', {}, ui.finishTitle),
+      el('p', {}, ui.finishText),
+      exportPanel(() => [finished], () => `srf-${finished.participantId}-${fileStamp()}`),
+    ),
+  );
 }
 
 showSetup();

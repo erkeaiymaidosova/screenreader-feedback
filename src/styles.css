@@ -147,6 +147,17 @@ input.field-error {
   margin-top: 24px;
 }
 
+.export-panel {
+  margin: 24px 0;
+}
+
+.button-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 /* Не видно на экране, но доступно скринридеру (display: none скрыл бы и от него) */
 .visually-hidden {
   position: absolute;

@@ -30,7 +30,7 @@ export function createFeedback(statusElement) {
     return true;
   }
 
-  function playTone(type, startHz, endHz, startAt, duration) {
+  function playTone(type, startHz, endHz, startAt, duration, peak = VOLUME) {
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
     const endAt = startAt + duration;
@@ -41,8 +41,8 @@ export function createFeedback(statusElement) {
 
     // Плавное начало и конец убирают щелчки
     gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.linearRampToValueAtTime(VOLUME, startAt + 0.01);
-    gain.gain.setValueAtTime(VOLUME, endAt - 0.05);
+    gain.gain.linearRampToValueAtTime(peak, startAt + 0.01);
+    gain.gain.setValueAtTime(peak, endAt - 0.05);
     gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
     oscillator.connect(gain);
@@ -62,8 +62,9 @@ export function createFeedback(statusElement) {
       playTone('sine', 660, 660, now, 0.13);
       playTone('sine', 880, 880, now + 0.13, 0.17);
     } else {
-      // Неудача: один низкий нисходящий тон другого тембра
-      playTone('triangle', 294, 165, now, EARCON_DURATION.failure);
+      // Неудача: один нисходящий тон ниже звука успеха. Не ниже 262 Гц: динамик телефона
+      // плохо передаёт низкие частоты. Квадратная волна «жужжит» и громче синусоиды, поэтому тише
+      playTone('square', 392, 262, now, EARCON_DURATION.failure, VOLUME * 0.5);
     }
     return true;
   }
